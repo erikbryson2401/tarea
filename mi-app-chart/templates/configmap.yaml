@@ -1,8 +1,8 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: mi-app-config
+  name: {{ .Release.Name }}-config
 data:
-  AMBIENTE: "desarrollo"
-  VERSION: "1.0"
-  MENSAJE: "Hola desde Helm!"
+  AMBIENTE: {{ .Values.config.ambiente | quote }}
+  VERSION: {{ .Values.config.version | quote }}
+  MENSAJE: {{ .Values.config.mensaje | quote }}

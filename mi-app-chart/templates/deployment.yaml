@@ -1,25 +1,45 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mi-app
+  name: {{ .Release.Name }}-app
+  labels:
+    app: {{ .Release.Name }}
+    environment: {{ .Values.environment }}
 spec:
-  replicas: 2
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: mi-app
+      app: {{ .Release.Name }}
   template:
     metadata:
       labels:
-        app: mi-app
+        app: {{ .Release.Name }}
     spec:
       containers:
-      - name: mi-app
-        image: mi-app
-        imagePullPolicy: Never
-        ports:
-        - containerPort: 5000
-        envFrom:
-        - configMapRef:
-            name: mi-app-config
-        - secretRef:
-            name: mi-app-secret
+        - name: app
+          image: {{ .Values.image.repository }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.targetPort }}
+          resources:
+            limits:
+              cpu: {{ .Values.resources.limits.cpu }}
+              memory: {{ .Values.resources.limits.memory }}
+            requests:
+              cpu: {{ .Values.resources.requests.cpu }}
+              memory: {{ .Values.resources.requests.memory }}
+          livenessProbe:
+            httpGet:
+              path: /salud
+              port: {{ .Values.service.targetPort }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /salud
+              port: {{ .Values.service.targetPort }}
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          envFrom:
+            - configMapRef:
+                name: {{ .Release.Name }}-config
