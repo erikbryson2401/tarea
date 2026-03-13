@@ -5,3 +5,20 @@ __pycache__/
 .terraform/
 *.tfstate
 *.tfstate.backup
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+
+# Kubernetes secrets
+secret.yaml
+*.yaml.secret
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Docker
+.env
