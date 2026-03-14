@@ -1,8 +1,7 @@
-# Redis Master
 resource "kubernetes_deployment" "redis_master" {
   metadata {
     name      = "redis-master"
-    namespace = "default"
+    namespace = var.namespace
     labels = {
       app  = "redis"
       role = "master"
@@ -26,7 +25,7 @@ resource "kubernetes_deployment" "redis_master" {
       spec {
         container {
           name  = "redis"
-          image = "redis:7"
+          image = var.redis_image
           port {
             container_port = 6379
           }
@@ -39,7 +38,7 @@ resource "kubernetes_deployment" "redis_master" {
 resource "kubernetes_service" "redis_master" {
   metadata {
     name      = "redis-master"
-    namespace = "default"
+    namespace = var.namespace
   }
   spec {
     selector = {
@@ -53,17 +52,16 @@ resource "kubernetes_service" "redis_master" {
   }
 }
 
-# Guestbook Frontend
 resource "kubernetes_deployment" "guestbook" {
   metadata {
     name      = "guestbook"
-    namespace = "default"
+    namespace = var.namespace
     labels = {
       app = "guestbook"
     }
   }
   spec {
-    replicas = 2
+    replicas = var.frontend_replicas
     selector {
       match_labels = {
         app = "guestbook"
@@ -78,7 +76,7 @@ resource "kubernetes_deployment" "guestbook" {
       spec {
         container {
           name  = "guestbook"
-          image = "paulczar/gb-frontend:v5"
+          image = var.frontend_image
           port {
             container_port = 80
           }
@@ -99,7 +97,7 @@ resource "kubernetes_deployment" "guestbook" {
 resource "kubernetes_service" "guestbook" {
   metadata {
     name      = "guestbook"
-    namespace = "default"
+    namespace = var.namespace
   }
   spec {
     type = "NodePort"
@@ -109,7 +107,7 @@ resource "kubernetes_service" "guestbook" {
     port {
       port        = 80
       target_port = 80
-      node_port   = 30080
+      node_port   = var.node_port
     }
   }
 }
