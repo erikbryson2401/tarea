@@ -3,21 +3,21 @@ kind: Deployment
 metadata:
   name: {{ .Release.Name }}-app
   labels:
-    app: {{ .Release.Name }}
+    {{- include "mi-app-chart.labels" . | nindent 4 }}
     environment: {{ .Values.environment }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: {{ .Release.Name }}
+      {{- include "mi-app-chart.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        app: {{ .Release.Name }}
+        {{- include "mi-app-chart.selectorLabels" . | nindent 8 }}
     spec:
       containers:
         - name: app
-          image: {{ .Values.image.repository }}
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.service.targetPort }}
