@@ -2,6 +2,8 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ .Release.Name }}-config
+  labels:
+    {{- include "mi-app-chart.labels" . | nindent 4 }}
 data:
   AMBIENTE: {{ .Values.config.ambiente | quote }}
   VERSION: {{ .Values.config.version | quote }}
