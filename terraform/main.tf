@@ -38,5 +38,6 @@ module "logging" {
   grafana_node_port      = var.grafana_node_port
 
   filebeat_image          = var.filebeat_image
+  grafana_storage_size    = var.grafana_storage_size
   depends_on = [kubernetes_namespace.logging]
 }

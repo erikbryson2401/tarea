@@ -191,6 +191,10 @@ resource "kubernetes_deployment" "grafana" {
             name  = "GF_SECURITY_ADMIN_PASSWORD"
             value = var.grafana_admin_password
           }
+          env {
+            name  = "GF_PATHS_PROVISIONING"
+            value = "/etc/grafana/provisioning"
+          }
           port {
             container_port = 3000
           }
@@ -212,6 +216,26 @@ resource "kubernetes_deployment" "grafana" {
             initial_delay_seconds = 30
             period_seconds        = 10
             failure_threshold     = 3
+          }
+          volume_mount {
+            name       = "grafana-storage"
+            mount_path = "/var/lib/grafana"
+          }
+          volume_mount {
+            name       = "grafana-datasources"
+            mount_path = "/etc/grafana/provisioning/datasources"
+          }
+        }
+        volume {
+          name = "grafana-storage"
+          persistent_volume_claim {
+            claim_name = kubernetes_persistent_volume_claim.grafana.metadata[0].name
+          }
+        }
+        volume {
+          name = "grafana-datasources"
+          config_map {
+            name = kubernetes_config_map.grafana_datasource.metadata[0].name
           }
         }
       }
@@ -374,5 +398,44 @@ resource "kubernetes_daemonset" "filebeat" {
         }
       }
     }
+  }
+}
+
+resource "kubernetes_persistent_volume_claim" "grafana" {
+  metadata {
+    name      = "grafana-pvc"
+    namespace = var.namespace
+  }
+  spec {
+    access_modes = ["ReadWriteOnce"]
+    resources {
+      requests = {
+        storage = var.grafana_storage_size
+      }
+    }
+  }
+}
+
+resource "kubernetes_config_map" "grafana_datasource" {
+  metadata {
+    name      = "grafana-datasources"
+    namespace = var.namespace
+  }
+  data = {
+    "elasticsearch.yaml" = <<-YAML
+      apiVersion: 1
+      datasources:
+      - name: Elasticsearch
+        type: elasticsearch
+        access: proxy
+        url: http://elasticsearch:9200
+        database: "filebeat-*"
+        jsonData:
+          timeField: "@timestamp"
+          esVersion: "8.0.0"
+          logMessageField: message
+          logLevelField: fields.level
+        isDefault: true
+    YAML
   }
 }

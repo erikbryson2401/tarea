@@ -76,3 +76,9 @@ variable "filebeat_image" {
   type        = string
   default     = "docker.elastic.co/beats/filebeat:8.12.0"
 }
+
+variable "grafana_storage_size" {
+  description = "Grafana persistent volume size"
+  type        = string
+  default     = "1Gi"
+}
