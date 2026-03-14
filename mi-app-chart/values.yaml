@@ -2,6 +2,7 @@ environment: development
 
 image:
   repository: mi-app
+  tag: "1.0.0"
   pullPolicy: IfNotPresent
 
 replicaCount: 2
@@ -22,3 +23,8 @@ config:
   ambiente: "desarrollo"
   version: "1.0"
   mensaje: "Hola desde Kubernetes!"
+
+prometheus:
+  release: prometheus
+  metricsPath: /metrics
+  scrapeInterval: 15s

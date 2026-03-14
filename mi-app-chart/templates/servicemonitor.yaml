@@ -3,12 +3,13 @@ kind: ServiceMonitor
 metadata:
   name: {{ .Release.Name }}-monitor
   labels:
-    release: prometheus
+    {{- include "mi-app-chart.labels" . | nindent 4 }}
+    release: {{ .Values.prometheus.release }}
 spec:
   selector:
     matchLabels:
-      app: {{ .Release.Name }}
+      {{- include "mi-app-chart.selectorLabels" . | nindent 6 }}
   endpoints:
     - port: http
-      path: /metrics
-      interval: 15s
+      path: {{ .Values.prometheus.metricsPath }}
+      interval: {{ .Values.prometheus.scrapeInterval }}
