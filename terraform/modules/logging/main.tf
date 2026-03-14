@@ -339,8 +339,10 @@ resource "kubernetes_config_map" "filebeat" {
                 logs_path: "/var/log/containers/"
       output.elasticsearch:
         hosts: ["http://elasticsearch:9200"]
-        index: "filebeat-%%{+yyyy.MM.dd}"
-      setup.ilm.enabled: false
+      setup.ilm.enabled: true
+      setup.ilm.rollover_alias: "filebeat"
+      setup.ilm.pattern: "{now/d}-000001"
+      setup.ilm.policy_name: "filebeat-policy"
       setup.template.name: "filebeat"
       setup.template.pattern: "filebeat-*"
     YAML
@@ -503,4 +505,51 @@ resource "kubernetes_persistent_volume_claim" "kibana" {
       }
     }
   }
+}
+
+resource "kubernetes_job" "elasticsearch_ilm_policy" {
+  metadata {
+    name      = "elasticsearch-ilm-setup"
+    namespace = var.namespace
+  }
+  spec {
+    template {
+      metadata {}
+      spec {
+        restart_policy = "OnFailure"
+        container {
+          name  = "ilm-setup"
+          image = "curlimages/curl:latest"
+          command = [
+            "sh", "-c",
+            <<-CMD
+              curl -s -X PUT "http://elasticsearch:9200/_ilm/policy/filebeat-policy" \
+              -H "Content-Type: application/json" \
+              -d '{
+                "policy": {
+                  "phases": {
+                    "hot": {
+                      "actions": {
+                        "rollover": {
+                          "max_size": "1gb",
+                          "max_age": "1d"
+                        }
+                      }
+                    },
+                    "delete": {
+                      "min_age": "7d",
+                      "actions": {
+                        "delete": {}
+                      }
+                    }
+                  }
+                }
+              }'
+            CMD
+          ]
+        }
+      }
+    }
+  }
+  wait_for_completion = false
 }
