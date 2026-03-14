@@ -63,6 +63,16 @@ resource "kubernetes_deployment" "elasticsearch" {
             period_seconds        = 20
             failure_threshold     = 3
           }
+          volume_mount {
+            name       = "elasticsearch-storage"
+            mount_path = "/usr/share/elasticsearch/data"
+          }
+        }
+        volume {
+          name = "elasticsearch-storage"
+          persistent_volume_claim {
+            claim_name = kubernetes_persistent_volume_claim.elasticsearch.metadata[0].name
+          }
         }
       }
     }
@@ -142,6 +152,16 @@ resource "kubernetes_deployment" "kibana" {
             period_seconds        = 30
             failure_threshold     = 3
           }
+          volume_mount {
+            name       = "kibana-storage"
+            mount_path = "/usr/share/kibana/data"
+          }
+        }
+        volume {
+          name = "kibana-storage"
+          persistent_volume_claim {
+            claim_name = kubernetes_persistent_volume_claim.kibana.metadata[0].name
+          }
         }
       }
     }
@@ -188,8 +208,13 @@ resource "kubernetes_deployment" "grafana" {
           name  = "grafana"
           image = var.grafana_image
           env {
-            name  = "GF_SECURITY_ADMIN_PASSWORD"
-            value = var.grafana_admin_password
+            name = "GF_SECURITY_ADMIN_PASSWORD"
+            value_from {
+              secret_key_ref {
+                name = kubernetes_secret.grafana.metadata[0].name
+                key  = "admin-password"
+              }
+            }
           }
           env {
             name  = "GF_PATHS_PROVISIONING"
@@ -437,5 +462,45 @@ resource "kubernetes_config_map" "grafana_datasource" {
           logLevelField: fields.level
         isDefault: true
     YAML
+  }
+}
+
+resource "kubernetes_secret" "grafana" {
+  metadata {
+    name      = "grafana-secret"
+    namespace = var.namespace
+  }
+  data = {
+    admin-password = var.grafana_admin_password
+  }
+}
+
+resource "kubernetes_persistent_volume_claim" "elasticsearch" {
+  metadata {
+    name      = "elasticsearch-pvc"
+    namespace = var.namespace
+  }
+  spec {
+    access_modes = ["ReadWriteOnce"]
+    resources {
+      requests = {
+        storage = var.elasticsearch_storage_size
+      }
+    }
+  }
+}
+
+resource "kubernetes_persistent_volume_claim" "kibana" {
+  metadata {
+    name      = "kibana-pvc"
+    namespace = var.namespace
+  }
+  spec {
+    access_modes = ["ReadWriteOnce"]
+    resources {
+      requests = {
+        storage = var.kibana_storage_size
+      }
+    }
   }
 }

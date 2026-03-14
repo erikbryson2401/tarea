@@ -27,3 +27,9 @@ variable "node_port" {
   type        = number
   default     = 30080
 }
+
+variable "redis_storage_size" {
+  description = "Redis persistent volume size"
+  type        = string
+  default     = "1Gi"
+}

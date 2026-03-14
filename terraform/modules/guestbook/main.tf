@@ -29,6 +29,16 @@ resource "kubernetes_deployment" "redis_master" {
           port {
             container_port = 6379
           }
+          volume_mount {
+            name       = "redis-storage"
+            mount_path = "/data"
+          }
+        }
+        volume {
+          name = "redis-storage"
+          persistent_volume_claim {
+            claim_name = kubernetes_persistent_volume_claim.redis.metadata[0].name
+          }
         }
       }
     }
@@ -108,6 +118,21 @@ resource "kubernetes_service" "guestbook" {
       port        = 80
       target_port = 80
       node_port   = var.node_port
+    }
+  }
+}
+
+resource "kubernetes_persistent_volume_claim" "redis" {
+  metadata {
+    name      = "redis-pvc"
+    namespace = var.namespace
+  }
+  spec {
+    access_modes = ["ReadWriteOnce"]
+    resources {
+      requests = {
+        storage = var.redis_storage_size
+      }
     }
   }
 }

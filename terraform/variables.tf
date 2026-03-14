@@ -82,3 +82,21 @@ variable "grafana_storage_size" {
   type        = string
   default     = "1Gi"
 }
+
+variable "elasticsearch_storage_size" {
+  description = "Elasticsearch persistent volume size"
+  type        = string
+  default     = "2Gi"
+}
+
+variable "kibana_storage_size" {
+  description = "Kibana persistent volume size"
+  type        = string
+  default     = "1Gi"
+}
+
+variable "redis_storage_size" {
+  description = "Redis persistent volume size"
+  type        = string
+  default     = "1Gi"
+}

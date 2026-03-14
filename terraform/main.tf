@@ -25,6 +25,7 @@ module "guestbook" {
   frontend_image    = var.frontend_image
   redis_image       = var.redis_image
   node_port         = var.guestbook_node_port
+  redis_storage_size    = var.redis_storage_size
 }
 
 module "logging" {
@@ -38,6 +39,8 @@ module "logging" {
   grafana_node_port      = var.grafana_node_port
 
   filebeat_image          = var.filebeat_image
-  grafana_storage_size    = var.grafana_storage_size
+  grafana_storage_size       = var.grafana_storage_size
+  elasticsearch_storage_size = var.elasticsearch_storage_size
+  kibana_storage_size        = var.kibana_storage_size
   depends_on = [kubernetes_namespace.logging]
 }
